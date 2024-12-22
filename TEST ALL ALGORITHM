@@ -1,0 +1,54 @@
+# Import necessary libraries
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+
+# Define classifiers
+classifiers = {
+    'Multinomial Naive Bayes': MultinomialNB(),
+    'Decision Tree': DecisionTreeClassifier(),
+    'Random Forest': RandomForestClassifier(),
+    'Support Vector Machine': SVC(),
+    'Logistic Regression': LogisticRegression()
+}
+
+# Load and preprocess data
+file_path = '/kaggle/input/test-cases-input/Labelled_Test_Cases.csv'
+data = pd.read_csv(file_path, encoding='ISO-8859-1', usecols=['v1', 'v2'])  # Keep only required columns
+data.columns = ['label', 'text']  # Rename for clarity
+data.dropna(subset=['label', 'text'], inplace=True)  # Remove rows with missing values
+
+# Split dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(
+    data['text'], data['label'], test_size=0.3, random_state=42)
+
+# Iterate through classifiers
+for name, clf in classifiers.items():
+    # Create a pipeline with vectorizer, transformer, and classifier
+    model = Pipeline([
+        ('vectorizer', CountVectorizer()),
+        ('transformer', TfidfTransformer()),
+        ('classifier', clf)
+    ])
+
+    # Train the model
+    model.fit(X_train, y_train)
+
+    # Make predictions
+    predictions = model.predict(X_test)
+
+    # Evaluate the model
+    accuracy = accuracy_score(y_test, predictions)
+    report = classification_report(y_test, predictions)
+
+    # Print results
+    print(f'\nResults for {name}:')
+    print(f'Accuracy: {accuracy:.2f}')
+    print('Classification Report:\n', report)
